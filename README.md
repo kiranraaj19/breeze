@@ -61,7 +61,7 @@ Features:
 
 ### 1. Configure Environment
 
-The `.env` file in the root directory contains all configuration:
+The `.env` file in the root directory contains all configuration (refer .env.example for providing your own credentials):
 
 ```env
 DATABASE_URL=postgres://postgres:postgres@localhost:5432/breeze?sslmode=disable
