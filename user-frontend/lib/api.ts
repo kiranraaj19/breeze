@@ -32,6 +32,12 @@ export interface UserDate {
   created_at: string;
 }
 
+export interface VenueWithCapacity extends Venue {
+  capacity: number;
+  available: number;
+  can_switch: boolean;
+}
+
 export interface AuthResponse {
   token: string;
   id: string;
@@ -102,8 +108,41 @@ export const api = {
   getMe: () =>
     fetchApi<{ id: string; email: string; user_pair_id: string; full_name: string }>('/api/v1/users/me', {}, true),
 
+  // Dates
   getMyDates: () =>
     fetchApi<{ dates: UserDate[] }>('/api/v1/users/me/dates', {}, true),
+
+  createDate: (data: CreateDateRequest) =>
+    fetchApi<UserDate>('/api/v1/dates', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }, true),
+
+  // Date modification
+  cancelDate: (dateId: string) =>
+    fetchApi<{ message: string; status: string }>(`/api/v1/dates/${dateId}/cancel`, {
+      method: 'POST',
+    }, true),
+
+  rescheduleDate: (dateId: string, newDate: string, newStartTime: string) =>
+    fetchApi<{ message: string; date: UserDate }>(`/api/v1/dates/${dateId}/reschedule`, {
+      method: 'POST',
+      body: JSON.stringify({ new_date: newDate, new_start_time: newStartTime }),
+    }, true),
+
+  getRescheduleOptions: (dateId: string) =>
+    fetchApi<{ slots: SlotAvailability[] }>(`/api/v1/dates/${dateId}/reschedule-options`, {}, true),
+
+  switchVenue: (dateId: string, newVenueId: string) =>
+    fetchApi<{ message: string; date: UserDate; venue_name: string }>(`/api/v1/dates/${dateId}/switch-venue`, {
+      method: 'POST',
+      body: JSON.stringify({ new_venue_id: newVenueId }),
+    }, true),
+
+  getSwitchOptions: (dateId: string) =>
+    fetchApi<{ current_venue_id: string; date: string; start_time: string; venues: VenueWithCapacity[] }>(
+      `/api/v1/dates/${dateId}/switch-options`, {}, true
+    ),
 
   // Venues (public)
   getVenues: () => fetchApi<Venue[]>('/api/v1/venues'),
@@ -118,11 +157,4 @@ export const api = {
       `/api/v1/venues/${venueId}/availability?${params}`
     );
   },
-
-  // Dates (protected)
-  createDate: (data: CreateDateRequest) =>
-    fetchApi<UserDate>('/api/v1/dates', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    }, true),
 };

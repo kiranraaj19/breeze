@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { api, UserDate } from '@/lib/api';
+import { api, UserDate, SlotAvailability, VenueWithCapacity } from '@/lib/api';
 
 export default function MyDatesPage() {
   const { user, isLoading, logout } = useAuth();
@@ -12,6 +12,15 @@ export default function MyDatesPage() {
   const [dates, setDates] = useState<UserDate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  
+  // Modal states
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [showSwitchModal, setShowSwitchModal] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<UserDate | null>(null);
+  const [rescheduleSlots, setRescheduleSlots] = useState<SlotAvailability[]>([]);
+  const [switchVenues, setSwitchVenues] = useState<VenueWithCapacity[]>([]);
+  const [modalLoading, setModalLoading] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -38,12 +47,86 @@ export default function MyDatesPage() {
     }
   };
 
+  const handleCancel = async (dateId: string) => {
+    if (!confirm('Are you sure you want to cancel this date?')) return;
+    
+    setActionLoading(dateId);
+    try {
+      await api.cancelDate(dateId);
+      await loadDates();
+    } catch (err: any) {
+      setError(err.message || 'Failed to cancel date');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const openRescheduleModal = async (date: UserDate) => {
+    setSelectedDate(date);
+    setShowRescheduleModal(true);
+    setModalLoading(true);
+    try {
+      const data = await api.getRescheduleOptions(date.id);
+      setRescheduleSlots(data.slots);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load reschedule options');
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const handleReschedule = async (newDate: string, newStartTime: string) => {
+    if (!selectedDate) return;
+    
+    setModalLoading(true);
+    try {
+      await api.rescheduleDate(selectedDate.id, newDate, newStartTime);
+      setShowRescheduleModal(false);
+      await loadDates();
+    } catch (err: any) {
+      setError(err.message || 'Failed to reschedule date');
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const openSwitchModal = async (date: UserDate) => {
+    setSelectedDate(date);
+    setShowSwitchModal(true);
+    setModalLoading(true);
+    try {
+      const data = await api.getSwitchOptions(date.id);
+      setSwitchVenues(data.venues);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load switch options');
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const handleSwitchVenue = async (newVenueId: string) => {
+    if (!selectedDate) return;
+    
+    setModalLoading(true);
+    try {
+      await api.switchVenue(selectedDate.id, newVenueId);
+      setShowSwitchModal(false);
+      await loadDates();
+    } catch (err: any) {
+      setError(err.message || 'Failed to switch venue');
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'confirmed':
         return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Confirmed</span>;
       case 'pending':
         return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pending</span>;
+      case 'rescheduling':
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Rescheduling</span>;
       case 'cancelled':
         return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Cancelled</span>;
       default:
@@ -66,6 +149,10 @@ export default function MyDatesPage() {
     const date = new Date();
     date.setHours(parseInt(hours), parseInt(minutes));
     return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  };
+
+  const canModify = (status: string) => {
+    return status !== 'cancelled';
   };
 
   if (isLoading || loading) {
@@ -131,7 +218,7 @@ export default function MyDatesPage() {
         {error && (
           <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
             {error}
-            <button onClick={loadDates} className="ml-4 text-red-800 underline">Retry</button>
+            <button onClick={() => setError('')} className="ml-4 text-red-800 underline">Dismiss</button>
           </div>
         )}
 
@@ -187,11 +274,148 @@ export default function MyDatesPage() {
                     <div className="text-xs text-gray-500">Date ID</div>
                   </div>
                 </div>
+
+                {/* Action Buttons */}
+                {canModify(date.status) && (
+                  <div className="mt-4 pt-4 border-t flex items-center gap-3">
+                    <button
+                      onClick={() => openRescheduleModal(date)}
+                      disabled={actionLoading === date.id}
+                      className="px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                    >
+                      Reschedule
+                    </button>
+                    <button
+                      onClick={() => openSwitchModal(date)}
+                      disabled={actionLoading === date.id}
+                      className="px-3 py-1.5 text-sm font-medium text-purple-600 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
+                    >
+                      Switch Venue
+                    </button>
+                    <button
+                      onClick={() => handleCancel(date.id)}
+                      disabled={actionLoading === date.id}
+                      className="px-3 py-1.5 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                    >
+                      {actionLoading === date.id ? 'Cancelling...' : 'Cancel'}
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
         )}
       </main>
+
+      {/* Reschedule Modal */}
+      {showRescheduleModal && selectedDate && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[80vh] overflow-hidden">
+            <div className="p-4 border-b">
+              <h3 className="text-lg font-semibold text-gray-900">Reschedule Date</h3>
+              <p className="text-sm text-gray-500">Select a new date and time</p>
+            </div>
+            <div className="p-4 overflow-y-auto max-h-[60vh]">
+              {modalLoading ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                </div>
+              ) : rescheduleSlots.length === 0 ? (
+                <p className="text-gray-500 text-center py-4">No available slots found</p>
+              ) : (
+                <div className="space-y-2">
+                  {rescheduleSlots.map((slot) => (
+                    <button
+                      key={`${slot.date}-${slot.start_time}`}
+                      onClick={() => handleReschedule(slot.date, slot.start_time)}
+                      disabled={modalLoading}
+                      className="w-full p-3 text-left border rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <div className="font-medium text-gray-900">
+                            {new Date(slot.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {slot.start_time} - {slot.end_time}
+                          </div>
+                        </div>
+                        <span className="text-sm text-green-600 font-medium">
+                          {slot.available} available
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="p-4 border-t bg-gray-50">
+              <button
+                onClick={() => setShowRescheduleModal(false)}
+                className="w-full px-4 py-2 text-gray-700 bg-white border rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Switch Venue Modal */}
+      {showSwitchModal && selectedDate && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[80vh] overflow-hidden">
+            <div className="p-4 border-b">
+              <h3 className="text-lg font-semibold text-gray-900">Switch Venue</h3>
+              <p className="text-sm text-gray-500">Select a different venue for the same time</p>
+            </div>
+            <div className="p-4 overflow-y-auto max-h-[60vh]">
+              {modalLoading ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                </div>
+              ) : switchVenues.length === 0 ? (
+                <p className="text-gray-500 text-center py-4">No other venues available at this time</p>
+              ) : (
+                <div className="space-y-2">
+                  {switchVenues.map((venue) => (
+                    <button
+                      key={venue.id}
+                      onClick={() => handleSwitchVenue(venue.id)}
+                      disabled={modalLoading || !venue.can_switch}
+                      className={`w-full p-3 text-left border rounded-lg transition-colors ${
+                        venue.can_switch 
+                          ? 'hover:bg-gray-50' 
+                          : 'opacity-50 cursor-not-allowed bg-gray-100'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="font-medium text-gray-900">{venue.name}</div>
+                          <div className="text-sm text-gray-500">{venue.address}</div>
+                        </div>
+                        <span className={`text-sm font-medium ${
+                          venue.can_switch ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          {venue.can_switch ? `${venue.available} spots` : 'Full'}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="p-4 border-t bg-gray-50">
+              <button
+                onClick={() => setShowSwitchModal(false)}
+                className="w-full px-4 py-2 text-gray-700 bg-white border rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

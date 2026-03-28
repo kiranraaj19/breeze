@@ -42,6 +42,7 @@ func main() {
 	// Initialize handlers
 	handler := handlers.NewHandler(database, syncService)
 	authHandler := handlers.NewAuthHandler(database)
+	dateHandler := handlers.NewDateHandler(database)
 
 	// Set up routes
 	r := mux.NewRouter()
@@ -70,7 +71,13 @@ func main() {
 
 	// Date management routes (protected)
 	protected.HandleFunc("/dates", handler.CreateDate).Methods("POST", "OPTIONS")
-	protected.HandleFunc("/dates/{date_id}/switch-venue", handler.SwitchVenue).Methods("POST", "OPTIONS")
+	
+	// Date modification routes (cancel, reschedule, switch venue)
+	protected.HandleFunc("/dates/{date_id}/cancel", dateHandler.CancelDate).Methods("POST", "OPTIONS")
+	protected.HandleFunc("/dates/{date_id}/reschedule", dateHandler.RescheduleDate).Methods("POST", "OPTIONS")
+	protected.HandleFunc("/dates/{date_id}/reschedule-options", dateHandler.GetRescheduleOptions).Methods("GET", "OPTIONS")
+	protected.HandleFunc("/dates/{date_id}/switch-venue", dateHandler.SwitchVenue).Methods("POST", "OPTIONS")
+	protected.HandleFunc("/dates/{date_id}/switch-options", dateHandler.GetVenuesForSwitch).Methods("GET", "OPTIONS")
 
 	// Partner dashboard routes (public for now, could be protected with different auth)
 	r.HandleFunc("/api/v1/venues/{venue_id}/dates", handler.GetDates).Methods("GET", "OPTIONS")
@@ -113,5 +120,6 @@ func main() {
 	fmt.Printf("🔐 Auth API: http://localhost:%s/api/v1/auth/login\n", port)
 	fmt.Printf("🏢 Venues API: http://localhost:%s/api/v1/venues\n", port)
 	fmt.Printf("👤 User API: http://localhost:%s/api/v1/users/me (protected)\n", port)
+	fmt.Printf("📅 Date API: http://localhost:%s/api/v1/dates (protected)\n", port)
 	log.Fatal(server.ListenAndServe())
 }
