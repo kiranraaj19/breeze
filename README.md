@@ -19,11 +19,15 @@ breeze/
 │   └── migrations/               # SQL migrations
 │       ├── 001_initial_schema.sql
 │       └── 002_seed_data.sql
-├── frontend/                     # Next.js frontend
+├── frontend/                     # Next.js Partner Dashboard (port 3000)
 │   ├── app/                      # App router pages
 │   ├── components/               # React components
-│   ├── lib/                      # API client
-│   └── package.json
+│   └── lib/                      # API client
+├── user-frontend/                # Next.js User Portal (port 3002) - NEW!
+│   ├── app/                      # Login, Book, My Dates pages
+│   ├── context/                  # Auth context
+│   ├── components/               # React components
+│   └── lib/                      # API client
 └── mock-partner-api/             # Mock partner API for testing
     └── main.go
 ```
@@ -35,6 +39,28 @@ breeze/
 - **PostgreSQL** 14+ (running database named `breeze`)
 
 ## Quick Start
+
+### User Portal (NEW)
+
+A separate frontend for users to book dates:
+
+```bash
+cd user-frontend
+npm install
+npm run dev
+# Runs on http://localhost:3002
+```
+
+Features:
+- **Login**: Simple email/password authentication
+- **Book Date**: Browse venues, select date/time, book instantly
+- **My Dates**: View all your booked dates with status
+
+Demo accounts:
+- `user1@test.com` / `password`
+- `user2@test.com` / `password`
+
+---
 
 ### 1. Configure Environment
 

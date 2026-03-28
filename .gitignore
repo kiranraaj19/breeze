@@ -59,6 +59,44 @@
 # Production build
 /frontend/build/
 
+# ============================================
+# User Frontend (Next.js)
+# ============================================
+
+# Dependencies
+/user-frontend/node_modules/
+/user-frontend/.pnp
+/user-frontend/.pnp.js
+
+# Testing
+/user-frontend/coverage/
+
+# Next.js build output
+/user-frontend/.next/
+/user-frontend/out/
+
+# Production build
+/user-frontend/build/
+
+# Debug
+/user-frontend/npm-debug.log*
+/user-frontend/yarn-debug.log*
+/user-frontend/yarn-error.log*
+/user-frontend/.pnpm-debug.log*
+
+# Local env files
+/user-frontend/.env.local
+/user-frontend/.env.development.local
+/user-frontend/.env.test.local
+/user-frontend/.env.production.local
+
+# Vercel
+/user-frontend/.vercel
+
+# TypeScript
+/user-frontend/*.tsbuildinfo
+/user-frontend/next-env.d.ts
+
 # Misc
 /frontend/.DS_Store
 /frontend/*.pem

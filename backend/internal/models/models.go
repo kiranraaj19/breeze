@@ -9,6 +9,18 @@ import (
 	"github.com/google/uuid"
 )
 
+// User represents an authenticated user
+type User struct {
+	ID           uuid.UUID `json:"id" db:"id"`
+	Email        string    `json:"email" db:"email"`
+	PasswordHash string    `json:"-" db:"password_hash"` // Never expose in JSON
+	UserPairID   string    `json:"user_pair_id" db:"user_pair_id"`
+	FullName     *string   `json:"full_name" db:"full_name"`
+	Status       string    `json:"status" db:"status"`
+	CreatedAt    time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at" db:"updated_at"`
+}
+
 // Venue represents a partner venue
 type Venue struct {
 	ID                 uuid.UUID `json:"id" db:"id"`
@@ -24,52 +36,52 @@ type Venue struct {
 
 // AvailabilitySlot represents a recurring weekly availability slot
 type AvailabilitySlot struct {
-	ID         uuid.UUID `json:"id" db:"id"`
-	VenueID    uuid.UUID `json:"venue_id" db:"venue_id"`
-	DayOfWeek  int       `json:"day_of_week" db:"day_of_week"`
-	StartTime  TimeOnly  `json:"start_time" db:"start_time"`
-	EndTime    TimeOnly  `json:"end_time" db:"end_time"`
-	Capacity   int       `json:"capacity" db:"capacity"`
-	IsActive   bool      `json:"is_active" db:"is_active"`
-	CreatedAt  time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at" db:"updated_at"`
+	ID        uuid.UUID `json:"id" db:"id"`
+	VenueID   uuid.UUID `json:"venue_id" db:"venue_id"`
+	DayOfWeek int       `json:"day_of_week" db:"day_of_week"`
+	StartTime TimeOnly  `json:"start_time" db:"start_time"`
+	EndTime   TimeOnly  `json:"end_time" db:"end_time"`
+	Capacity  int       `json:"capacity" db:"capacity"`
+	IsActive  bool      `json:"is_active" db:"is_active"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 }
 
 // Date represents a scheduled date between matched users
 type Date struct {
-	ID           uuid.UUID `json:"id" db:"id"`
-	VenueID      uuid.UUID `json:"venue_id" db:"venue_id"`
-	UserPairID   string    `json:"user_pair_id" db:"user_pair_id"`
-	Date         DateOnly  `json:"date" db:"date"`
-	StartTime    TimeOnly  `json:"start_time" db:"start_time"`
-	Status       string    `json:"status" db:"status"`
-	CreatedAt    time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at" db:"updated_at"`
+	ID         uuid.UUID `json:"id" db:"id"`
+	VenueID    uuid.UUID `json:"venue_id" db:"venue_id"`
+	UserPairID string    `json:"user_pair_id" db:"user_pair_id"`
+	Date       DateOnly  `json:"date" db:"date"`
+	StartTime  TimeOnly  `json:"start_time" db:"start_time"`
+	Status     string    `json:"status" db:"status"`
+	CreatedAt  time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at" db:"updated_at"`
 }
 
 // Reservation tracks the external reservation state
 type Reservation struct {
-	ID                     uuid.UUID  `json:"id" db:"id"`
-	DateID                 uuid.UUID  `json:"date_id" db:"date_id"`
-	VenueID                uuid.UUID  `json:"venue_id" db:"venue_id"`
-	ExternalReservationID  *string    `json:"external_reservation_id" db:"external_reservation_id"`
-	Status                 string     `json:"status" db:"status"`
-	CreatedAt              time.Time  `json:"created_at" db:"created_at"`
-	UpdatedAt              time.Time  `json:"updated_at" db:"updated_at"`
-	LastSyncedAt           *time.Time `json:"last_synced_at" db:"last_synced_at"`
+	ID                    uuid.UUID  `json:"id" db:"id"`
+	DateID                uuid.UUID  `json:"date_id" db:"date_id"`
+	VenueID               uuid.UUID  `json:"venue_id" db:"venue_id"`
+	ExternalReservationID *string    `json:"external_reservation_id" db:"external_reservation_id"`
+	Status                string     `json:"status" db:"status"`
+	CreatedAt             time.Time  `json:"created_at" db:"created_at"`
+	UpdatedAt             time.Time  `json:"updated_at" db:"updated_at"`
+	LastSyncedAt          *time.Time `json:"last_synced_at" db:"last_synced_at"`
 }
 
 // SyncLog tracks sync operations
 type SyncLog struct {
-	ID                uuid.UUID  `json:"id" db:"id"`
-	VenueID           *uuid.UUID `json:"venue_id" db:"venue_id"`
-	SyncType          string     `json:"sync_type" db:"sync_type"`
-	Status            string     `json:"status" db:"status"`
-	StartedAt         time.Time  `json:"started_at" db:"started_at"`
-	CompletedAt       *time.Time `json:"completed_at" db:"completed_at"`
-	RecordsProcessed  int        `json:"records_processed" db:"records_processed"`
-	ErrorMessage      *string    `json:"error_message" db:"error_message"`
-	CreatedAt         time.Time  `json:"created_at" db:"created_at"`
+	ID               uuid.UUID  `json:"id" db:"id"`
+	VenueID          *uuid.UUID `json:"venue_id" db:"venue_id"`
+	SyncType         string     `json:"sync_type" db:"sync_type"`
+	Status           string     `json:"status" db:"status"`
+	StartedAt        time.Time  `json:"started_at" db:"started_at"`
+	CompletedAt      *time.Time `json:"completed_at" db:"completed_at"`
+	RecordsProcessed int        `json:"records_processed" db:"records_processed"`
+	ErrorMessage     *string    `json:"error_message" db:"error_message"`
+	CreatedAt        time.Time  `json:"created_at" db:"created_at"`
 }
 
 // TimeOnly is a custom type for TIME columns
@@ -188,12 +200,28 @@ type SlotAvailability struct {
 
 // DateWithReservation combines Date and Reservation info
 type DateWithReservation struct {
-	ID                    uuid.UUID  `json:"id" db:"id"`
-	UserPairID            string     `json:"user_pair_id" db:"user_pair_id"`
-	Date                  DateOnly   `json:"date" db:"date"`
-	StartTime             TimeOnly   `json:"start_time" db:"start_time"`
-	Status                string     `json:"status" db:"status"`
-	ExternalReservationID *string    `json:"external_reservation_id" db:"external_reservation_id"`
-	ReservationStatus     string     `json:"reservation_status" db:"reservation_status"`
-	CreatedAt             time.Time  `json:"created_at" db:"created_at"`
+	ID                    uuid.UUID `json:"id" db:"id"`
+	VenueID               uuid.UUID `json:"venue_id" db:"venue_id"`
+	UserPairID            string    `json:"user_pair_id" db:"user_pair_id"`
+	Date                  DateOnly  `json:"date" db:"date"`
+	StartTime             TimeOnly  `json:"start_time" db:"start_time"`
+	Status                string    `json:"status" db:"status"`
+	ExternalReservationID *string   `json:"external_reservation_id" db:"external_reservation_id"`
+	ReservationStatus     string    `json:"reservation_status" db:"reservation_status"`
+	CreatedAt             time.Time `json:"created_at" db:"created_at"`
+}
+
+// UserDate represents a date with venue info for user views
+type UserDate struct {
+	ID                    uuid.UUID `json:"id" db:"id"`
+	VenueID               uuid.UUID `json:"venue_id" db:"venue_id"`
+	VenueName             string    `json:"venue_name" db:"venue_name"`
+	VenueAddress          string    `json:"venue_address" db:"venue_address"`
+	UserPairID            string    `json:"user_pair_id" db:"user_pair_id"`
+	Date                  DateOnly  `json:"date" db:"date"`
+	StartTime             TimeOnly  `json:"start_time" db:"start_time"`
+	Status                string    `json:"status" db:"status"`
+	ExternalReservationID *string   `json:"external_reservation_id" db:"external_reservation_id"`
+	ReservationStatus     string    `json:"reservation_status" db:"reservation_status"`
+	CreatedAt             time.Time `json:"created_at" db:"created_at"`
 }

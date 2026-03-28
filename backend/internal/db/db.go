@@ -55,6 +55,7 @@ func (db *DB) RunMigrations() error {
 	migrations := []string{
 		"migrations/001_initial_schema.sql",
 		"migrations/002_seed_data.sql",
+		"migrations/003_users_table.sql",
 	}
 
 	for _, migration := range migrations {

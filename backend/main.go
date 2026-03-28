@@ -41,6 +41,7 @@ func main() {
 
 	// Initialize handlers
 	handler := handlers.NewHandler(database, syncService)
+	authHandler := handlers.NewAuthHandler(database)
 
 	// Set up routes
 	r := mux.NewRouter()
@@ -48,23 +49,33 @@ func main() {
 	// Health check
 	r.HandleFunc("/health", handler.HealthCheck).Methods("GET", "OPTIONS")
 
-	// Venue routes
+	// Auth routes (public)
+	r.HandleFunc("/api/v1/auth/register", authHandler.Register).Methods("POST", "OPTIONS")
+	r.HandleFunc("/api/v1/auth/login", authHandler.Login).Methods("POST", "OPTIONS")
+
+	// Venue routes (public)
 	r.HandleFunc("/api/v1/venues", handler.GetVenues).Methods("GET", "OPTIONS")
 	r.HandleFunc("/api/v1/venues/{venue_id}", handler.GetVenue).Methods("GET", "OPTIONS")
 
-	// Availability routes
+	// Availability routes (public)
 	r.HandleFunc("/api/v1/venues/{venue_id}/availability", handler.GetAvailability).Methods("GET", "OPTIONS")
 
-	// Dates routes
-	r.HandleFunc("/api/v1/venues/{venue_id}/dates", handler.GetDates).Methods("GET", "OPTIONS")
+	// Protected routes - require authentication
+	protected := r.PathPrefix("/api/v1").Subrouter()
+	protected.Use(authHandler.AuthMiddleware)
 
-	// Sync routes
+	// User profile routes (protected)
+	protected.HandleFunc("/users/me", authHandler.GetMe).Methods("GET", "OPTIONS")
+	protected.HandleFunc("/users/me/dates", authHandler.GetMyDates).Methods("GET", "OPTIONS")
+
+	// Date management routes (protected)
+	protected.HandleFunc("/dates", handler.CreateDate).Methods("POST", "OPTIONS")
+	protected.HandleFunc("/dates/{date_id}/switch-venue", handler.SwitchVenue).Methods("POST", "OPTIONS")
+
+	// Partner dashboard routes (public for now, could be protected with different auth)
+	r.HandleFunc("/api/v1/venues/{venue_id}/dates", handler.GetDates).Methods("GET", "OPTIONS")
 	r.HandleFunc("/api/v1/venues/{venue_id}/sync-status", handler.GetSyncStatus).Methods("GET", "OPTIONS")
 	r.HandleFunc("/api/v1/venues/{venue_id}/sync", handler.TriggerSync).Methods("POST", "OPTIONS")
-
-	// Date management routes
-	r.HandleFunc("/api/v1/dates", handler.CreateDate).Methods("POST", "OPTIONS")
-	r.HandleFunc("/api/v1/dates/{date_id}/switch-venue", handler.SwitchVenue).Methods("POST", "OPTIONS")
 
 	// Apply CORS middleware
 	handlerWithCORS := handlers.EnableCORS(r)
@@ -99,6 +110,8 @@ func main() {
 
 	fmt.Printf("🚀 Server starting on http://localhost:%s\n", port)
 	fmt.Printf("📊 Health check: http://localhost:%s/health\n", port)
+	fmt.Printf("🔐 Auth API: http://localhost:%s/api/v1/auth/login\n", port)
 	fmt.Printf("🏢 Venues API: http://localhost:%s/api/v1/venues\n", port)
+	fmt.Printf("👤 User API: http://localhost:%s/api/v1/users/me (protected)\n", port)
 	log.Fatal(server.ListenAndServe())
 }
