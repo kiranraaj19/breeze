@@ -56,9 +56,6 @@ Features:
 - **Book Date**: Browse venues, select date/time, book instantly
 - **My Dates**: View all your booked dates with status
 
-Demo accounts:
-- `user1@test.com` / `password`
-- `user2@test.com` / `password`
 
 ---
 
@@ -214,24 +211,3 @@ If I had more time, I would add:
 4. **Metrics**: Prometheus metrics for sync success rates, latency
 5. **Rate limiting**: Protect partner APIs from excessive calls
 6. **Tests**: Unit tests for sync logic, integration tests for API
-
-## AI Assistant Usage
-
-This project was built with AI assistance. Key prompts and interactions:
-
-### Prompt Examples
-
-1. "Design a PostgreSQL schema for a partner availability system with recurring weekly slots and reservation tracking"
-2. "Create a Go HTTP handler structure with CORS support for a REST API"
-3. "Build a React calendar component that shows weekly availability with capacity indicators"
-
-### Key Decisions
-
-- **Accepted**: Using separate `reservations` table to track external state
-- **Accepted**: Custom TimeOnly/DateOnly types for proper JSON serialization
-- **Modified**: AI suggested using an ORM, but I used raw SQL for better control
-- **Modified**: Simplified the auto-rescheduling logic due to time constraints
-
----
-
-Built for the Breeze Product Engineer Technical Case.
