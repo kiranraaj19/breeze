@@ -84,7 +84,7 @@ Ensure PostgreSQL is running and the `breeze` database exists:
 createdb breeze
 ```
 
-### 3. Start the Mock Partner API (Optional)
+### 3. Start the Mock Partner API for Sync Logic between User and Partner Portal
 
 For local testing, start the mock partner API:
 
@@ -94,7 +94,7 @@ go run main.go
 # Runs on http://localhost:3001
 ```
 
-### 4. Start the Backend
+### 4. Start the Backend - For data fetching and update
 
 ```bash
 cd backend
