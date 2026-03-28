@@ -320,11 +320,11 @@ export default function MyDatesPage() {
                 <div className="flex justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
                 </div>
-              ) : rescheduleSlots.length === 0 ? (
+              ) : !rescheduleSlots || rescheduleSlots.length === 0 ? (
                 <p className="text-gray-500 text-center py-4">No available slots found</p>
               ) : (
                 <div className="space-y-2">
-                  {rescheduleSlots.map((slot) => (
+                  {rescheduleSlots?.map((slot) => (
                     <button
                       key={`${slot.date}-${slot.start_time}`}
                       onClick={() => handleReschedule(slot.date, slot.start_time)}
@@ -374,11 +374,11 @@ export default function MyDatesPage() {
                 <div className="flex justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
                 </div>
-              ) : switchVenues.length === 0 ? (
+              ) : !switchVenues || switchVenues.length === 0 ? (
                 <p className="text-gray-500 text-center py-4">No other venues available at this time</p>
               ) : (
                 <div className="space-y-2">
-                  {switchVenues.map((venue) => (
+                  {switchVenues?.map((venue) => (
                     <button
                       key={venue.id}
                       onClick={() => handleSwitchVenue(venue.id)}

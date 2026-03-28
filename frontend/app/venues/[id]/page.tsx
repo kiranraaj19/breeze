@@ -1,16 +1,50 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import SyncStatus from '@/components/SyncStatus';
 import AvailabilityCalendar from '@/components/AvailabilityCalendar';
-
-export const dynamic = 'force-dynamic';
 
 interface VenuePageProps {
   params: { id: string };
 }
 
-export default async function VenuePage({ params }: VenuePageProps) {
-  const venue = await api.getVenue(params.id);
+export default function VenuePage({ params }: VenuePageProps) {
+  const router = useRouter();
+  const [venue, setVenue] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(() => {
+    const fetchVenue = async () => {
+      try {
+        const data = await api.getVenue(params.id);
+        setVenue(data);
+      } catch (err) {
+        console.error('Failed to fetch venue', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVenue();
+  }, [params.id]);
+
+  const handleSync = () => {
+    // Force refresh of AvailabilityCalendar and router
+    setRefreshKey(prev => prev + 1);
+    router.refresh();
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
 
   if (!venue) {
     return (
@@ -45,7 +79,7 @@ export default async function VenuePage({ params }: VenuePageProps) {
                 <p className="text-sm text-gray-500">{venue.address}, {venue.city}</p>
               </div>
             </div>
-            <SyncStatus venueId={params.id} />
+            <SyncStatus venueId={params.id} onSync={handleSync} />
           </div>
         </div>
       </header>
@@ -79,7 +113,7 @@ export default async function VenuePage({ params }: VenuePageProps) {
           </p>
         </div>
 
-        <AvailabilityCalendar venueId={params.id} />
+        <AvailabilityCalendar key={refreshKey} venueId={params.id} />
 
         {/* Info cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">

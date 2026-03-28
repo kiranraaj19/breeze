@@ -5,9 +5,10 @@ import { api, SyncLog } from '@/lib/api';
 
 interface SyncStatusProps {
   venueId: string;
+  onSync?: () => void; // Callback after sync completes
 }
 
-export default function SyncStatus({ venueId }: SyncStatusProps) {
+export default function SyncStatus({ venueId, onSync }: SyncStatusProps) {
   const [syncStatus, setSyncStatus] = useState<SyncLog | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,11 +27,35 @@ export default function SyncStatus({ venueId }: SyncStatusProps) {
     setIsSyncing(true);
     try {
       await api.triggerSync(venueId);
-      // Wait a moment then refresh status
-      setTimeout(fetchSyncStatus, 1000);
+      // Poll for completion
+      let attempts = 0;
+      const pollInterval = setInterval(async () => {
+        attempts++;
+        await fetchSyncStatus();
+        
+        // Check if sync completed (not running) or max attempts reached
+        const status = syncStatus?.status;
+        if (status !== 'running' || attempts >= 10) {
+          clearInterval(pollInterval);
+          setIsSyncing(false);
+          // Call the callback to refresh parent data
+          if (onSync) {
+            onSync();
+          }
+        }
+      }, 1000);
+      
+      // Safety timeout
+      setTimeout(() => {
+        clearInterval(pollInterval);
+        setIsSyncing(false);
+        if (onSync) {
+          onSync();
+        }
+      }, 15000);
+      
     } catch (err) {
       setError('Sync failed');
-    } finally {
       setIsSyncing(false);
     }
   };

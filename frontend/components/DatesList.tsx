@@ -12,20 +12,20 @@ export default function DatesList({ venueId }: DatesListProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchDates = async () => {
-      setLoading(true);
-      try {
-        const data = await api.getDates(venueId);
-        setDates(data.dates);
-        setError(null);
-      } catch (err) {
-        setError('Failed to load dates');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchDates = async () => {
+    setLoading(true);
+    try {
+      const data = await api.getDates(venueId);
+      setDates(data.dates);
+      setError(null);
+    } catch (err) {
+      setError('Failed to load dates');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchDates();
   }, [venueId]);
 
