@@ -1,0 +1,183 @@
+# ============================================
+# Breeze - Partner Availability System
+# ============================================
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# ============================================
+# Go Backend
+# ============================================
+
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+/backend/main
+/backend/backend
+/backend/*.exe
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+
+# Go vendor directory
+/backend/vendor/
+
+# Go build cache
+/backend/tmp/
+/backend/build/
+
+# ============================================
+# Mock Partner API
+# ============================================
+/mock-partner-api/main
+/mock-partner-api/*.exe
+
+# ============================================
+# Next.js Frontend
+# ============================================
+
+# Dependencies
+/frontend/node_modules/
+/frontend/.pnp
+/frontend/.pnp.js
+
+# Testing
+/frontend/coverage/
+
+# Next.js build output
+/frontend/.next/
+/frontend/out/
+
+# Production build
+/frontend/build/
+
+# Misc
+/frontend/.DS_Store
+/frontend/*.pem
+
+# Debug
+/frontend/npm-debug.log*
+/frontend/yarn-debug.log*
+/frontend/yarn-error.log*
+/frontend/.pnpm-debug.log*
+
+# Local env files
+/frontend/.env.local
+/frontend/.env.development.local
+/frontend/.env.test.local
+/frontend/.env.production.local
+
+# Vercel
+/frontend/.vercel
+
+# TypeScript
+/frontend/*.tsbuildinfo
+/frontend/next-env.d.ts
+
+# ============================================
+# IDE and Editor Files
+# ============================================
+
+# VSCode
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# IntelliJ / JetBrains
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+
+# ============================================
+# OS Files
+# ============================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+
+
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.nfs*
+
+# ============================================
+# Logs and Databases
+# ============================================
+
+*.log
+*.sql
+*.sqlite
+*.sqlite3
+
+# ============================================
+# Temporary Files
+# ============================================
+
+*.tmp
+*.temp
+*.cache
+.cache/
+tmp/
+temp/
+
+# ============================================
+# AI Assistant Screenshots (for submission)
+# Keep these if you want them in the repo
+# ============================================
+
+# Uncomment to exclude screenshots from repo
+# /screenshots/
+# /ai-prompts/
